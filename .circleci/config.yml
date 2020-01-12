@@ -42,9 +42,7 @@ jobs:
             command: make assets
       - run:
             name: Build Javascript
-            command: |
-                make javascript-test
-                make javascript-dev
+            command: make javascript-dev
       - run:
             name: Change owner on project dir after install
             command: sudo chmod -R 777 ../project
@@ -102,7 +100,7 @@ jobs:
   test_back_phpunit:
       machine:
           image: ubuntu-1604:201903-01
-      parallelism: 10
+      parallelism: 5
       steps:
           - attach_workspace:
                 at: ~/
@@ -133,7 +131,7 @@ jobs:
   back_behat_legacy:
     machine:
       image: ubuntu-1604:201903-01
-    parallelism: 20
+    parallelism: 15
     steps:
       - attach_workspace:
           at: ~/
@@ -195,6 +193,9 @@ jobs:
         - run:
               name: Front unit tests
               command: make unit-front
+        - run:
+              name: Build test environment for acceptance and integration tests
+              command: make javascript-test
         - run:
               name: Front acceptance tests
               command: make acceptance-front
@@ -273,19 +274,18 @@ workflows:
                 requires:
                     - test_back_static_and_acceptance
                     - test_front_static_acceptance_and_integration
-          - test_back_data_migrations:
-                requires:
-                    - test_back_static_and_acceptance
-                    - test_front_static_acceptance_and_integration
+#          - test_back_data_migrations:
+#                requires:
+#                    - test_back_static_and_acceptance
+#                    - test_front_static_acceptance_and_integration
           - test_back_phpunit:
                 requires:
                     - test_back_static_and_acceptance
                     - test_front_static_acceptance_and_integration
           - back_behat_legacy:
                 requires:
-                    - test_back_data_migrations
-                    - test_back_missing_structure_migrations
-                    - test_back_phpunit
+                    - test_back_static_and_acceptance
+                    - test_front_static_acceptance_and_integration
 
   nightly:
       triggers:
